@@ -1,17 +1,42 @@
 <html>
 <head>
+	<style>
+		.task-card {
+			border: 1px solid black;
+			height: 25px;
+			width: 500px;
+			display: flex;
+		}
+	</style>
 </head>
 <body>
 	<section id='tasks'>
-		<fieldset>These are Tasks</fieldset>
+		<fieldset>
+			<h3>Tasks</h3>
+			<div class='task-card'>
+				<li>Ref: task-1</li>
+				<li>Bill-Code: receive-OA</li>
+				<li>Date: 2017-11-24</li>
+			</div>
+			<div class='task-card'>
+				<li>Ref: task-2</li>
+				<li>Bill-Code: mee and confer</li>
+				<li>Date: 2017-11-28</li>
+			</div>
+			<div class='task-card'>
+				<li>Ref: task-3</li>
+				<li>Bill-Code: file-response</li>
+				<li>Date: 2017-12-2</li>
+			</div>
+		</fieldset>
 	</section>
 
 	<section id='policies'>
-		<fieldset>These are Policies</fieldset>
+		<fieldset><h3>Policies<h3></fieldset>
 	</section>
 
 	<section id='log'>
-		<fieldset>This is the log</fieldset>
+		<fieldset><h3>Log</h3></fieldset>
 	</section>
 </body>
 </html>
