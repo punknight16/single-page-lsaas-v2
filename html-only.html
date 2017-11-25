@@ -1,0 +1,81 @@
+<html>
+<head>
+	<meta charset="utf-8">
+  <script src="./build/react.min.js"></script>
+  <script src="./build/react-dom.min.js"></script>
+  <script src="./build/browser.min.js"></script>
+	<style>
+		.task-card {
+			border: 1px solid black;
+			height: 25px;
+			width: 500px;
+			display: flex;
+		}
+		.policy-card {
+			border: 1px solid black;
+			min-height: 50px;
+			width: 500px;
+		}
+	</style>
+	<script>
+		function allowDrop(ev) {
+		    ev.preventDefault();
+		}
+
+		function drag(ev) {
+		    ev.dataTransfer.setData("text", ev.target.id);
+		}
+
+		function drop(ev) {
+		    ev.preventDefault();
+		    var data = ev.dataTransfer.getData("text");
+		    ev.target.appendChild(document.getElementById(data));
+		}
+	</script>
+</head>
+<body>
+	<section id='tasks'>
+		<fieldset>
+			<h3>Tasks</h3>
+			<div class='task-card' id="drag1" src="img_logo.gif" draggable="true"
+	ondragstart="drag(event)">
+				<li>Ref: task-1</li>
+				<li>Bill-Code: receive-OA</li>
+				<li>Date: 2017-11-24</li>
+			</div>
+			<div class='task-card' id="drag2" src="img_logo.gif" draggable="true"
+	ondragstart="drag(event)">
+				<li>Ref: task-2</li>
+				<li>Bill-Code: mee and confer</li>
+				<li>Date: 2017-11-28</li>
+			</div>
+			<div class='task-card' id="drag3" src="img_logo.gif" draggable="true"
+	ondragstart="drag(event)">
+				<li>Ref: task-3</li>
+				<li>Bill-Code: file-response</li>
+				<li>Date: 2017-12-2</li>
+			</div>
+		</fieldset>
+	</section>
+
+	<section id='policies'>
+		<fieldset><h3>Policies</h3>
+
+			<div class='policy-card' id="div1" ondrop="drop(event)" ondragover="allowDrop(event)">
+				<li>Ref: policy-3</li>
+				<li>Bill-Code: file-response</li>
+				<li>Date: 2017-12-2</li>
+			</div>
+		</fieldset>
+	</section>
+
+	<section id='log'>
+		<fieldset><h3>Log</h3></fieldset>
+	</section>
+	<script>
+		ReactDOM.render(<App />, document.getElementById('container'));
+  </script>
+</body>
+
+
+</html>

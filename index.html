@@ -1,75 +1,354 @@
 <html>
 <head>
+	<meta charset="utf-8">
+  <script src="./build/react.min.js"></script>
+  <script src="./build/react-dom.min.js"></script>
+  <script src="./build/browser.min.js"></script>
 	<style>
 		.task-card {
 			border: 1px solid black;
-			height: 25px;
+			min-height: 25px;
 			width: 500px;
-			display: flex;
+		}
+		.task-template {
+			border: 1px solid red;
+			min-height: 25px;
+			width: 500px;
+
 		}
 		.policy-card {
 			border: 1px solid black;
 			min-height: 50px;
 			width: 500px;
 		}
+		.policy-template {
+			border: 1px solid red;
+			min-height: 50px;
+			width: 500px;
+		}
+		button {
+			border: none;
+			height: 20px;
+			width: 50px;
+			border: 1px solid green;
+		}
 	</style>
-	<script>
-		function allowDrop(ev) {
-		    ev.preventDefault();
-		}
-
-		function drag(ev) {
-		    ev.dataTransfer.setData("text", ev.target.id);
-		}
-
-		function drop(ev) {
-		    ev.preventDefault();
-		    var data = ev.dataTransfer.getData("text");
-		    ev.target.appendChild(document.getElementById(data));
-		}
-	</script>
 </head>
 <body>
-	<section id='tasks'>
-		<fieldset>
-			<h3>Tasks</h3>
-			<div class='task-card' id="drag1" src="img_logo.gif" draggable="true"
-	ondragstart="drag(event)">
-				<li>Ref: task-1</li>
-				<li>Bill-Code: receive-OA</li>
-				<li>Date: 2017-11-24</li>
-			</div>
-			<div class='task-card' id="drag2" src="img_logo.gif" draggable="true"
-	ondragstart="drag(event)">
-				<li>Ref: task-2</li>
-				<li>Bill-Code: mee and confer</li>
-				<li>Date: 2017-11-28</li>
-			</div>
-			<div class='task-card' id="drag3" src="img_logo.gif" draggable="true"
-	ondragstart="drag(event)">
-				<li>Ref: task-3</li>
-				<li>Bill-Code: file-response</li>
-				<li>Date: 2017-12-2</li>
-			</div>
-		</fieldset>
-	</section>
-
-	<section id='policies'>
-		<fieldset><h3>Policies</h3>
-
-			<div class='policy-card' id="div1" ondrop="drop(event)" ondragover="allowDrop(event)">
-				<li>Ref: policy-3</li>
-				<li>Bill-Code: file-response</li>
-				<li>Date: 2017-12-2</li>
-			</div>
-		</fieldset>
-	</section>
-
-	<section id='log'>
-		<fieldset><h3>Log</h3></fieldset>
-	</section>
-
-
+	<main id='app'></main>
+	<script type="text/babel">
+    var App = React.createClass({
+    	getInitialState: function(){
+        return {
+        	active_card: '',
+        	target_card: '',
+        	template_data: {
+        		matters: [
+        			{ref: 't_m1', title: '', connections: [] },
+        			{ref: 't_m2', title: '', connections: [] }
+        		],
+        		users: [
+        			{ref: 't_u1', username: '', connections: [] }
+        		],
+        		tasks: [
+        			{ref: 't_t1', task_key: '', connections: [] }
+        		],
+        		policies: [
+        			{ref: 't_p1', sub_tasks: ['OA_received', 'PROA'], connections: [] }
+        		]
+        	},
+        	data: {
+        		matters: [
+        			{ref: 'm1', title: 'three-fingered glove', connections: [] },
+        			{ref: 'm2', title: 'five-fingered glove', connections: [] }
+        		],
+        		users: [
+        			{ref: 'u1', username: 'Daniel Miller', connections: [] }
+        		],
+        		tasks: [
+        			{ref: 't1', task_key: 'OA_received', connections: [] }
+        		],
+        		policies: [
+        			{ref: 'p1', sub_tasks: ['OA_received', 'PROA'], connections: [] }
+        		]
+        	}
+        }
+      },
+      addCard: function(index, template){
+      	var template_clone = JSON.parse(JSON.stringify(template));
+      	var data = this.state.data;
+      	var ref = index.substr(0, 1)+Math.random().toString(36).substr(2, 9);
+      	template_clone.ref = ref;
+      	data[index].push(template_clone);
+      	this.setState({ data: data});
+      },
+      newTemplate: function(index){
+      	var template_data = this.state.template_data;
+      	var ref = 't_'+index.substr(0, 1)+Math.random().toString(36).substr(2, 9);
+      	template_data[index].push({ref: ref, connections: []});
+      	this.setState({template_data: template_data});
+      },
+      remove: function(section){
+      	var data = this.state.data;
+      	var found_index = data[section].findIndex(o=>o.ref===this.state.active_card);
+      	data[section].splice(found_index, 1);
+      	this.setState({data: data});
+      },
+      del: function(section, template){
+      	var template_data = this.state.template_data;
+      	var found_index = template_data[section].findIndex(o=>o.ref===this.state.active_card);
+      	template_data[section].splice(found_index, 1);
+      	this.setState({template_data: template_data});
+      },
+      submit: function(section, updated_card){
+      	var data = this.state.data;
+      	var found_index = data[section].findIndex(o=>o.ref===updated_card.ref);
+      	data[section][found_index] = updated_card;
+      	this.setState({data: data});
+      },
+      submitTemplate: function(section, object, new_key){
+      	var template_data = this.state.template_data;
+      	var found_index = template_data[section].findIndex(o=>o.ref===object.ref);
+      	console.log(template_data[section][found_index]);
+      	object[new_key] = '';
+      	template_data[section][found_index] = object;
+      	this.setState({template_data: template_data});
+      },
+      addText: function(text){
+      	return this.log_component.addText(text)
+      },
+      subscribeEvent: function(eventname, payload){
+      	switch (eventname) {
+      		case 'drop':
+      			this.addText('connection added');
+      		break;
+      	default:
+      		this.addText('action not tracked');
+      	}
+      },
+    	render: function(){
+    		return (
+    			<div> 
+    				<button onClick={(event)=>this.addText('button pushed')}>click</button>
+    				<Section title='Tasks' index='tasks' card_style='task-card' template_style='task-template' template_data={this.state.template_data.tasks} data={this.state.data.tasks} parent={this}
+							addCard={this.addCard} newTemplate={this.newTemplate}/>
+						<hr />
+						<Section title='Policies' index='policies' card_style='policy-card' template_style='policy-template' template_data={this.state.template_data.policies} data={this.state.data.policies} parent={this} addCard={this.addCard} newTemplate={this.newTemplate}/>
+						<hr />
+    				<section><h1>Log</h1><Log ref={(ref) => this.log_component = ref}/></section>
+    			</div>
+    		);
+    	}
+    });
+var Section = React.createClass({ 	
+    	getInitialState: function(event){
+    		return ({
+    			clicked_template: null,
+    			clicked_card: null,
+    			skin: null,
+    			edit_card: {},
+    			new_key: null,
+    			filter_query: '',
+    			filter_results: this.props.data
+    		});
+    	},
+    	drag: function(event){
+    		this.props.parent.setState(
+    			{active_card: event.target.getAttribute('data-ref')}
+    		);
+    	},
+    	drop: function(ev){
+    		this.props.parent.subscribeEvent('drop', 'connection added');
+    		var target_card = ev.target.getAttribute('data-ref') || ev.target.parentElement.getAttribute('data-ref') || ev.target.parentElement.parentElement.getAttribute('data-ref') || ev.target.parentElement.parentElement.parentElement.getAttribute('data-ref');
+    		
+    		var active_card = this.props.parent.state.active_card;
+    		var data = this.props.parent.state.data;
+    		Object.keys(data).map(function(section, section_index){
+    			var test = data[section].findIndex(o=>o.ref===target_card);
+    			if(test>=0){
+    				if(-1===data[section][test].connections.findIndex(e=>e===active_card)){
+    					//de-duplication
+    					data[section][test].connections.push(active_card);
+    					this.props.parent.setState({
+    						data: data
+    					});	
+    				}
+    			}
+    		}.bind(this));
+    	},
+    	preventDefault: function(event){
+    		event.preventDefault();
+    	},
+    	add: function(index, template){
+    		this.props.addCard(index, template);
+    	},
+    	newTemplate: function(index){
+    		this.props.newTemplate(index);
+    	},
+    	updateSkin: function(){
+    		if(this.state.skin === 'is_dragging'){
+    			this.setState({skin: 'null'});	
+    		} else {
+    			this.setState({skin: 'is_dragging'});	
+    		}
+    	},
+    	remove: function(){
+    		this.props.parent.remove(this.props.index);
+    		this.updateSkin();
+    	},
+    	del: function(index, template){
+    		this.props.parent.del(index, template);
+    	},
+    	change: function(event, key){
+    		event.preventDefault();
+    		var edit_card = this.state.edit_card;
+    		edit_card[key] = event.target.value;
+    		this.setState({ edit_card: edit_card});
+    	},
+    	renderUpdateCard: function(object, object_index){
+    		var edit_card = this.state.edit_card;
+    		return (
+    			<div onClick={(event)=>this.click(object, object_index)} className={this.props.card_style}>
+    				{Object.keys(object).map(function(key){
+								if(key==='ref') {
+									return <li>{key}: {object[key]}</li>
+								} else {
+									return <li>{key}: <input type='text' size='10' value={edit_card[key]} 
+									onChange={(event)=>this.change(event, key)} /></li>	
+								}
+						}.bind(this))}
+    			</div>
+    		);
+    	},
+    	renderReadCard: function(object, object_index){
+    		return (
+    			<div onClick={(event)=>this.click(object, object_index)} className={this.props.card_style} draggable="true" 
+    				onDragStart={(event)=>{this.drag(event); this.updateSkin()}} 
+    				onDragEnd={this.updateSkin} onDrop={this.drop} 
+    				onDragOver={this.preventDefault} data-ref={object.ref}>
+							{Object.keys(object).map(function(key){
+								return <li>{key}: {this[key]}</li>
+						}.bind(object))}
+					</div>
+				);
+    	},
+    	click: function(object, object_index){
+    		this.setState({
+    			clicked_card: object_index,
+    			skin: 'is_clicked',
+    			edit_card: object
+    		});
+    	},
+    	submit: function(index, updated_card){
+    		this.props.parent.submit(index, updated_card);
+    		this.setState({skin: null, clicked_card: null});
+    	},
+    	renderButton: function(){
+    		switch(this.state.skin){
+					case 'is_dragging':
+						return (<button className='trash-button' 
+							onDrop={this.remove} onDragOver={this.preventDefault}>trash</button>);
+						break;
+					case 'is_clicked':
+						return <button onClick={(event)=>this.submit(this.props.index, this.state.edit_card)}>Submit</button>
+						break;
+					default:
+						return <button onClick={(event)=>this.newTemplate(this.props.index)}>New</button>
+						break;
+				}
+    	},
+    	new_key: function(object_index){
+    		this.setState({clicked_template: object_index});
+    	},
+    	submitTemplate: function(section, object, new_key){
+    		this.props.parent.submitTemplate(section, object, new_key);
+    		this.setState({
+    			clicked_template: null,
+    			new_key: null
+    		});
+    	},
+    	renderReadTemplate: function(object, object_index){
+    		return (
+					<div className={this.props.template_style}>
+						<div style={{display: 'flex'}}>
+							<button onClick={(event)=>this.new_key(object_index)} className='submit-button'>Go</button>
+							<button onClick={(event)=>this.add(this.props.index, object)}>Add</button>
+							<button onClick={(event)=>this.del(this.props.index, object)} className='trash-button'> Del </button>
+						</div>
+						{Object.keys(object).map(function(key){
+							return (key==='connections') ? null : <li>{key}: {object[key]}</li>
+						})}
+					</div>
+				);
+    	},
+    	renderUpdateTemplate: function(object, object_index){
+    		return (
+    			<div className={this.props.template_style}>
+    				{Object.keys(object).map(function(key){
+							return (key==='connections') ? null : <li>{key}: {object[key]}</li>
+						})}
+    				<li><input type='text' size='10' value={this.state.new_key} onChange={(event)=>{this.setState({new_key: event.target.value})}}/></li>
+    				<button onClick={(event)=>this.submitTemplate(this.props.index, object, this.state.new_key)}>Submit</button>
+    			</div>
+    		);
+    	},
+    	changeFilterQuery: function(event, members_arr){
+    			var filter_query = event.target.value;			
+    			filterIt(members_arr, filter_query, function(err, members_filtered){
+      			if(err) throw err;
+      			members_filtered = (members_filtered) ? members_filtered : [];
+      			this.setState({
+    					filter_results: members_filtered,
+    					filter_query: filter_query
+    				});
+    			}.bind(this));
+    	},
+    	render: function() {
+      	return (
+      		<section>
+      			<div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+							<div style={{display: 'flex', alignItems: 'center'}}>
+								<h1>{this.props.title}</h1>
+								<input type='text' size='30' value={this.state.filter_query} onChange={(event)=>{this.changeFilterQuery(event, this.props.parent.state.data[this.props.index])}}/>
+							</div>
+							{this.renderButton()}
+						</div>
+						<div>
+							{this.props.template_data.map(function(object, object_index){	
+								return (this.state.clicked_template===object_index) ? this.renderUpdateTemplate(object, object_index) : this.renderReadTemplate(object, object_index);
+							}.bind(this))}
+							{this.state.filter_results.map(function(object, object_index){
+								return (this.state.clicked_card===object_index) ? this.renderUpdateCard(object, object_index) : this.renderReadCard(object, object_index);
+							}.bind(this))}
+						</div>
+					</section>
+      	);
+      }
+    });
+    var Log = React.createClass({
+    	getInitialState: function(){
+    		return {
+    			log_arr: []
+    		}
+    	},
+    	addText: function(text){
+    		var log_arr = this.state.log_arr;
+    		log_arr.push(text);
+    		this.setState({log_arr: log_arr});
+    	},
+    	render: function(){
+    		return (
+    			<div>
+    				
+    				{this.state.log_arr.map(function(message, message_index){
+    					return <li>{message}</li>
+    				})}
+    			</div>
+    		);	
+    	}
+    });
+		ReactDOM.render(<App />, document.getElementById('app'));
+  </script>
 </body>
 
 
