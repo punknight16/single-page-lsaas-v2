@@ -34,45 +34,108 @@
 	</script>
 </head>
 <body>
-	<section id='tasks'>
-		<fieldset>
-			<h3>Tasks</h3>
-			<div class='task-card' id="drag1" src="img_logo.gif" draggable="true"
-	ondragstart="drag(event)">
-				<li>Ref: task-1</li>
-				<li>Bill-Code: receive-OA</li>
-				<li>Date: 2017-11-24</li>
-			</div>
-			<div class='task-card' id="drag2" src="img_logo.gif" draggable="true"
-	ondragstart="drag(event)">
-				<li>Ref: task-2</li>
-				<li>Bill-Code: mee and confer</li>
-				<li>Date: 2017-11-28</li>
-			</div>
-			<div class='task-card' id="drag3" src="img_logo.gif" draggable="true"
-	ondragstart="drag(event)">
-				<li>Ref: task-3</li>
-				<li>Bill-Code: file-response</li>
-				<li>Date: 2017-12-2</li>
-			</div>
-		</fieldset>
-	</section>
+	<div id='container'></div>
+	<script type='text/babel'>
+		var App = React.createClass({
+			getInitialState: function(){
+				return {
+					tasks: [
+						{ref: 'task_1', bill_code: 'receive-OA', date: [2017, 11, 24]},
+						{ref: 'task_2', bill_code: 'meet-and-confer', date: [2017, 12, 2]},
+						{ref: 'task_3', bill_code: 'receive-OA', date: [2018, 1, 13]},
+					]
+				}
+			},
+			renderMonth: function(number){
+				switch (number){
+					case 1:
+						return 'Jan';
+						break;
+					case 2:
+						return 'Feb';
+						break;
+					case 3:
+						return 'March';
+						break;
+					case 4:
+						return 'April';
+						break;
+					case 5:
+						return 'May';
+						break;
+					case 6:
+						return 'June';
+						break;
+					case 7:
+						return 'July';
+						break;
+					case 8:
+						return 'August';
+						break;
+					case 9:
+						return 'September';
+						break;
+					case 10:
+						return 'October';
+						break;
+					case 11:
+						return 'November';
+						break;
+					case 12:
+						return 'December';
+						break;
+				}
+			},
+			renderValue: function(value, key){
+				if(typeof value === 'object'){
+					switch (key){
+						case 'date':
+							return <span>{this.renderMonth(value[1])} {value[2]}, {value[0]}</span>
+							break;
+						default:
+							return JSON.stringify(value);
+					}	
+				} else {
+					return value;
+				}
+				
+			},
+			render: function(){
+				return (<div>
+					<section id='tasks'>
+					<fieldset>
+						<h3>Tasks</h3>
+						{this.state.tasks.map(function(task, task_index){
+							return (
+								<div className='task-card' id="drag1" src="img_logo.gif" draggable="true" ondragstart="drag(event)">
+									<li>Ref: {this.renderValue(task.ref, 'ref')}</li>
+									<li>Bill-Code: {this.renderValue(task.bill_code, 'bill_code')}</li>
+									<li>Date: {this.renderValue(task.date, 'date')}</li>
+								</div>
+							);
+						}.bind(this))}
+						
+					</fieldset>
+				</section>
 
-	<section id='policies'>
-		<fieldset><h3>Policies</h3>
+				<section id='policies'>
+					<fieldset><h3>Policies</h3>
 
-			<div class='policy-card' id="div1" ondrop="drop(event)" ondragover="allowDrop(event)">
-				<li>Ref: policy-3</li>
-				<li>Bill-Code: file-response</li>
-				<li>Date: 2017-12-2</li>
-			</div>
-		</fieldset>
-	</section>
+						<div className='policy-card' id="div1" ondrop="drop(event)" ondragover="allowDrop(event)">
+							<li>Ref: policy-3</li>
+							<li>Bill-Code: file-response</li>
+							<li>Date: 2017-12-2</li>
+						</div>
+					</fieldset>
+				</section>
 
-	<section id='log'>
-		<fieldset><h3>Log</h3></fieldset>
-	</section>
-	<script>
+					<section id='log'>
+						<fieldset><h3>Log</h3></fieldset>
+					</section>
+				</div>);
+			}
+		});
+
 		ReactDOM.render(<App />, document.getElementById('container'));
   </script>
 </body>

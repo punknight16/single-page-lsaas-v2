@@ -26,6 +26,9 @@
 			min-height: 50px;
 			width: 500px;
 		}
+		.complete {
+			text-decoration: line-through;
+		}
 		button {
 			border: none;
 			height: 20px;
@@ -33,6 +36,26 @@
 			border: 1px solid green;
 		}
 	</style>
+		<script>
+		function filterIt(members_arr, searchKey, fn) {
+  		function memberFilter(member){
+  		  function valueFilter(value){
+  		    return value.includes(searchKey.toLowerCase());
+  		  }  
+  		  var values_arr = Object.keys(member).map(function(key, keyindex){
+  		    return member[key].toString().toLowerCase();
+  		  });
+  		  return values_arr.some(valueFilter.bind(this));
+  		}
+
+	  	var filtered_members = members_arr.filter(memberFilter.bind(this));
+	  	if(filtered_members.length == 0){
+	  	  return fn(null, null);
+	  	} else {
+	  	  return fn(null, filtered_members);
+	  	}
+		}  
+	</script>
 </head>
 <body>
 	<main id='app'></main>
@@ -54,7 +77,7 @@
         			{ref: 't_t1', task_key: '', connections: [] }
         		],
         		policies: [
-        			{ref: 't_p1', sub_tasks: ['OA_received', 'PROA'], connections: [] }
+        			{ref: 't_p1', sub_tasks: [{'OA_received': false}, {'PROA': false}], connections: [] }
         		]
         	},
         	data: {
@@ -69,7 +92,7 @@
         			{ref: 't1', task_key: 'OA_received', connections: [] }
         		],
         		policies: [
-        			{ref: 'p1', sub_tasks: ['OA_received', 'PROA'], connections: [] }
+        			{ref: 'p1', sub_tasks: [{'OA_received': true}, {'PROA': false}], connections: [] }
         		]
         	}
         }
@@ -109,7 +132,7 @@
       submitTemplate: function(section, object, new_key){
       	var template_data = this.state.template_data;
       	var found_index = template_data[section].findIndex(o=>o.ref===object.ref);
-      	console.log(template_data[section][found_index]);
+      	
       	object[new_key] = '';
       	template_data[section][found_index] = object;
       	this.setState({template_data: template_data});
@@ -122,8 +145,14 @@
       		case 'drop':
       			this.addText('connection added');
       		break;
-      	default:
-      		this.addText('action not tracked');
+      		case 'update_subtask': 
+      			this.addText('subtask updated');
+      			var data = this.state.data;
+      			data[payload.section_index][payload.object_index].sub_tasks[payload.subtask_index][payload.key] = !(data[payload.section_index][payload.object_index].sub_tasks[payload.subtask_index][payload.key]);
+      			this.setState({ data: data });
+      			break;
+      		default:
+      			this.addText('action not tracked');
       	}
       },
     	render: function(){
@@ -222,16 +251,62 @@ var Section = React.createClass({
     	},
     	renderReadCard: function(object, object_index){
     		return (
-    			<div onClick={(event)=>this.click(object, object_index)} className={this.props.card_style} draggable="true" 
+    			<div onClick={(event)=>{/*this.click(object, object_index)*/}} className={this.props.card_style} draggable="true" 
     				onDragStart={(event)=>{this.drag(event); this.updateSkin()}} 
     				onDragEnd={this.updateSkin} onDrop={this.drop} 
     				onDragOver={this.preventDefault} data-ref={object.ref}>
-							{Object.keys(object).map(function(key){
-								return <li>{key}: {this[key]}</li>
-						}.bind(object))}
+							{Object.keys(object).map(function(key, key_index){
+								
+								return <li>{key}: {this.renderValue(object[key], key, {
+								section_index: this.props.index,
+								object_index: object_index
+							})}</li>
+						}.bind(this))}
 					</div>
 				);
     	},
+    	updateSubtask: function(index_object){
+    		console.log("index_object.subtask_index: ", index_object.subtask_index);
+    		this.props.parent.subscribeEvent('update_subtask', index_object);
+    	},
+    	renderValue: function(value, key, index_object){
+				
+				if(typeof value === 'object'){
+					switch (key){
+						case 'sub_tasks':
+							return (
+								<span>
+									{value.map(function(key_value_pair, key_value_pair_index){
+										
+										//console.log("key_value_pair_index: " + JSON.stringify(key_value_pair) + "better_index_object: " + JSON.stringify(better_index_object));
+										for(var i in key_value_pair){
+											if(key_value_pair[i]){
+												return <span onClick={(event)=>this.updateSubtask({
+													section_index: index_object.section_index,
+													object_index: index_object.object_index,
+													subtask_index: key_value_pair_index,
+													key: i
+												})} className='complete'>{i}, </span>	
+											} else {
+												return <span onClick={(event)=>this.updateSubtask({
+													section_index: index_object.section_index,
+													object_index: index_object.object_index,
+													subtask_index: key_value_pair_index,
+													key: i
+												})}>{i}, </span>	
+											}
+										};
+									}.bind(this))}
+								</span>
+							);
+							break;
+						default:
+							return JSON.stringify(value);
+					}	
+				} else {
+					return value;
+				}
+			},
     	click: function(object, object_index){
     		this.setState({
     			clicked_card: object_index,
@@ -258,6 +333,7 @@ var Section = React.createClass({
 				}
     	},
     	new_key: function(object_index){
+    		
     		this.setState({clicked_template: object_index});
     	},
     	submitTemplate: function(section, object, new_key){
@@ -275,9 +351,12 @@ var Section = React.createClass({
 							<button onClick={(event)=>this.add(this.props.index, object)}>Add</button>
 							<button onClick={(event)=>this.del(this.props.index, object)} className='trash-button'> Del </button>
 						</div>
-						{Object.keys(object).map(function(key){
-							return (key==='connections') ? null : <li>{key}: {object[key]}</li>
-						})}
+						{Object.keys(object).map(function(key, key_index){
+							return (key==='connections') ? null : <li>{key}: {this.renderValue(object[key], key, {
+								section_index: this.props.index,
+								object_index: object_index
+							})}</li>
+						}.bind(this))}
 					</div>
 				);
     	},
@@ -285,8 +364,8 @@ var Section = React.createClass({
     		return (
     			<div className={this.props.template_style}>
     				{Object.keys(object).map(function(key){
-							return (key==='connections') ? null : <li>{key}: {object[key]}</li>
-						})}
+							return (key==='connections') ? null : <li>{key}: {this.renderValue(object[key], key)}</li>
+						}.bind(this))}
     				<li><input type='text' size='10' value={this.state.new_key} onChange={(event)=>{this.setState({new_key: event.target.value})}}/></li>
     				<button onClick={(event)=>this.submitTemplate(this.props.index, object, this.state.new_key)}>Submit</button>
     			</div>
@@ -350,6 +429,4 @@ var Section = React.createClass({
 		ReactDOM.render(<App />, document.getElementById('app'));
   </script>
 </body>
-
-
 </html>
