@@ -66,13 +66,6 @@
         	active_card: '',
         	target_card: '',
         	template_data: {
-        		matters: [
-        			{ref: 't_m1', title: '', connections: [] },
-        			{ref: 't_m2', title: '', connections: [] }
-        		],
-        		users: [
-        			{ref: 't_u1', username: '', connections: [] }
-        		],
         		tasks: [
         			{ref: 't_t1', task_key: '', connections: [] }
         		],
@@ -81,13 +74,6 @@
         		]
         	},
         	data: {
-        		matters: [
-        			{ref: 'm1', title: 'three-fingered glove', connections: [] },
-        			{ref: 'm2', title: 'five-fingered glove', connections: [] }
-        		],
-        		users: [
-        			{ref: 'u1', username: 'Daniel Miller', connections: [] }
-        		],
         		tasks: [
         			{ref: 't1', task_key: 'OA_received', connections: [] }
         		],
@@ -144,16 +130,20 @@
       	switch (eventname) {
       		case 'drop':
       			this.addText('connection added');
+      			this.updateSubtask(payload.section_index, payload.object_index, payload.subtask_index, payload.key);
       		break;
       		case 'update_subtask': 
       			this.addText('subtask updated');
-      			var data = this.state.data;
-      			data[payload.section_index][payload.object_index].sub_tasks[payload.subtask_index][payload.key] = !(data[payload.section_index][payload.object_index].sub_tasks[payload.subtask_index][payload.key]);
-      			this.setState({ data: data });
+      			this.updateSubtask(payload.section_index, payload.object_index, payload.subtask_index, payload.key);
       			break;
       		default:
       			this.addText('action not tracked');
       	}
+      },
+      updateSubtask: function(section_index, object_index, subtask_index, key){
+      	var data = this.state.data;
+      			data[section_index][object_index].sub_tasks[subtask_index][key] = !(data[section_index][object_index].sub_tasks[subtask_index][key]);
+      			this.setState({ data: data });
       },
     	render: function(){
     		return (
@@ -187,23 +177,39 @@ var Section = React.createClass({
     		);
     	},
     	drop: function(ev){
-    		this.props.parent.subscribeEvent('drop', 'connection added');
+    		
     		var target_card = ev.target.getAttribute('data-ref') || ev.target.parentElement.getAttribute('data-ref') || ev.target.parentElement.parentElement.getAttribute('data-ref') || ev.target.parentElement.parentElement.parentElement.getAttribute('data-ref');
     		
     		var active_card = this.props.parent.state.active_card;
     		var data = this.props.parent.state.data;
-    		Object.keys(data).map(function(section, section_index){
-    			var test = data[section].findIndex(o=>o.ref===target_card);
-    			if(test>=0){
-    				if(-1===data[section][test].connections.findIndex(e=>e===active_card)){
-    					//de-duplication
-    					data[section][test].connections.push(active_card);
-    					this.props.parent.setState({
-    						data: data
-    					});	
-    				}
-    			}
-    		}.bind(this));
+    		var section = this.props.index;
+  			var test = data[section].findIndex(o=>o.ref===target_card);  
+  			if(test>=0){
+  				Object.keys(data).map(function(test_section, testsection_index){
+  					
+  					var active_card_index = data[test_section].findIndex(e=>e.ref===active_card);
+  					if(active_card_index>=0){
+  							var key = data[test_section][active_card_index].task_key;
+  							
+  							var subtask_index = data[section][test].sub_tasks.findIndex(e=>e.hasOwnProperty(key));
+  							var index_object = {
+    						section_index: this.props.index,
+    						object_index: test,
+    						subtask_index: subtask_index,
+    						key: key
+    					};
+    					this.props.parent.subscribeEvent('drop', index_object);	
+  					}
+  				}.bind(this));
+  				if(-1===data[section][test].connections.findIndex(e=>e===active_card)){
+  					//de-duplication
+  					data[section][test].connections.push(active_card);
+  					this.props.parent.setState({
+  						data: data
+  					});	
+  				}
+  			}
+    		
     	},
     	preventDefault: function(event){
     		event.preventDefault();
